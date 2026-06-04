@@ -2,6 +2,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <string.h>
 
 int main() {
 
@@ -22,10 +23,14 @@ int main() {
 	) == -1 ) { return -1; }; // ERROR
 								
 	// sending data
-	const char* message = "~ hello, world!";
-	std::cout << "Sending message: " << message << '\n';
-	send(clientSocket, message, strlen(message), 0);
+	std::string message;	
+	std::cout << "Enter your message: ";
+	std::getline(std::cin, message); 
+
+	send(clientSocket, message.c_str(), message.length(), 0);
 	
 	// close socket
 	close(clientSocket);
+
+	return 0;
 }
