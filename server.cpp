@@ -1,6 +1,10 @@
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #include <unistd.h>
 
 #define PORT 8080  // port users connect to
@@ -32,31 +36,57 @@ int main() {
 	// listening to the assigned socket
 	listen(serverSocket, BACKLOG);
 
+	std::cout << "server: waiting for connections...\n";
+
 	while (true) {
 
 		// accepting connection request
 		// we get a new socket (e.g file)
 		int clientSocket = accept(serverSocket, nullptr, nullptr);
 
-		// receiving data from user, if ever
-		char buffer[1024] = {0};
-		recv(clientSocket, buffer, sizeof(buffer), 0);
-		std::cout << "Message from client: " << buffer << '\n';
+		// fork yourself after accepting a connection
+		pid_t c_pid = fork();
 
-		std::string body = "hello from hugo!";
-		std::string response =
-				"HTTP/1.1 200 OK\r\n"
-				"Content-Type: text/plain\r\n"
-				"Content-Length: " + body + "\r\n"
-				"\r\n" + body;
+		if (c_pid == -1) {
+			perror("fork");
+			exit(EXIT_FAILURE);
+		};
 
-		send(clientSocket, response.c_str(), response.size(), 0);
-		close(clientSocket);
+		if (c_pid == 0) {
+			// child process
 
+			// child process doesn't need listening socket. Close it
+			// Note that it still exists in the parent process since 
+			// it's just a reference to the fd (reference count by the kernel)
+			close(serverSocket);
+			
+			// receiving data from user, if ever
+			char buffer[1024] = {0};
+			int bytes = recv(clientSocket, buffer, sizeof(buffer), 0);
+			if (bytes > 0) {
+				std::cout << "Message from client: " << buffer << '\n';
+			};
+
+			// send stuff back to client
+			std::string body = "hello from hugo!";
+			std::string response =
+					"HTTP/1.1 200 OK\r\n"
+					"Content-Type: text/plain\r\n"
+					"Content-Length: " + std::to_string(body.size()) + "\r\n"
+					"\r\n" + body;
+
+			send(clientSocket, response.c_str(), response.size(), 0);
+			close(clientSocket);
+
+			exit(0);
+		};
+
+		if (c_pid > 0) {
+			// parent: keep listening
+			// Reference count
+			close(clientSocket);
+		};
 	};
-
-	// closing the sockets
-	close(serverSocket);
 
 	return 0;
 };
