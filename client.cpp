@@ -2,6 +2,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+
+/* Simple CLI client that connects to localhost (127.0.0.1:8080),
+ * writes message, and receives answer from server. */
 
 int main() {
 
@@ -15,7 +19,7 @@ int main() {
 		sockaddr_in serverAddress;
 		serverAddress.sin_family = AF_INET;	
 		serverAddress.sin_port = htons(8080);
-		serverAddress.sin_addr.s_addr = INADDR_ANY;
+		serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 		// sending connection request to connect to server 
 		if ( connect(
