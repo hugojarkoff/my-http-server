@@ -8,10 +8,6 @@
 
 int main() {
 
-	// this computer 
-	char hostname[256];
-	gethostname(hostname, sizeof(hostname));
-
 	// open listening server socket
 	// basically get access to the file (descriptor)
 	int serverSocket = socket(
