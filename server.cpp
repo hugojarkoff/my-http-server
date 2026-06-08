@@ -47,9 +47,7 @@ int main() {
 		recv(clientSocket, buffer, sizeof(buffer), 0);
 		std::cout << "Message from client: " << buffer << '\n';
 
-		// const char* body = "hello from hugo";
-		std::string body = "hello from hugo@";
-		body.append(hostname);
+		std::string body = "hello from hugo!";
 		std::string response =
 				"HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/plain\r\n"
